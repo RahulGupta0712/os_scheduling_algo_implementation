@@ -5,8 +5,8 @@ using namespace std;
 
 struct process
 {
-    int id, burstTime, arrivalTime;                  // given properties
-    int waitingTime, completionTime, turnAroundTime; // to be found after scheduling
+    int id, burstTime, arrivalTime;                                 // given properties
+    int waitingTime, completionTime, turnAroundTime, allocatedTime; // to be found after scheduling
 
     process() {}
 
@@ -51,40 +51,60 @@ void input()
 
 void schedule()
 {
-    // SHORTEST JOB FIRST [NON-PREEMPTIVE]
+    // ROUND ROBIN SCHEDULING
+
+    int timeQuantum = 2;
 
     // sort the processes on the basis of arrival time
     sort(jobs, jobs + n, cmp);
 
-    // take the job with minimum burst time
-    priority_queue<process *, vector<process *>, cmp2> minHeap;
-    minHeap.push(&jobs[0]);
-
-    int time = 0;
+    queue<process *> q;
+    q.push(&jobs[0]);
 
     int lastAddedProcess = 0;
+    int time = 0;
 
-    while (!minHeap.empty())
+    while (!q.empty())
     {
-        process* scheduledProcess = minHeap.top();
-        minHeap.pop();
+        process *scheduledProcess = q.front();
+        q.pop();
 
-        time += scheduledProcess->burstTime;
-        scheduledProcess->completionTime = time;
-        scheduledProcess->turnAroundTime = scheduledProcess->completionTime - scheduledProcess->arrivalTime;
-        scheduledProcess->waitingTime = scheduledProcess->turnAroundTime - scheduledProcess->burstTime;
+        int remainingTime = scheduledProcess->burstTime - scheduledProcess->allocatedTime;
+        if (remainingTime > timeQuantum)
+        {
+            scheduledProcess->allocatedTime += timeQuantum;
+            time += timeQuantum;
+        }
+        else
+        {
+            scheduledProcess->allocatedTime += remainingTime;
+            time += remainingTime;
+        }
 
         for (int i = lastAddedProcess + 1; i < n; ++i)
         {
             if (jobs[i].arrivalTime <= time)
             {
-                minHeap.push(&jobs[i]);
+                q.push(&jobs[i]);
                 lastAddedProcess = i;
             }
             else
             {
                 break;
             }
+        }
+
+        if (scheduledProcess->allocatedTime < scheduledProcess->burstTime)
+        {
+            // if process is remaining
+            q.push(scheduledProcess);
+        }
+        else
+        {
+            // process completed
+            scheduledProcess->completionTime = time;
+            scheduledProcess->turnAroundTime = scheduledProcess->completionTime - scheduledProcess->arrivalTime;
+            scheduledProcess->waitingTime = scheduledProcess->turnAroundTime - scheduledProcess->burstTime;
         }
     }
 }

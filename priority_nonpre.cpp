@@ -5,16 +5,19 @@ using namespace std;
 
 struct process
 {
-    int id, burstTime, arrivalTime;                  // given properties
+    int id, burstTime, arrivalTime, priority;        // given properties
     int waitingTime, completionTime, turnAroundTime; // to be found after scheduling
+
+    // higher the number, higher the priority
 
     process() {}
 
-    process(int id, int burstTime, int arrivalTime)
+    process(int id, int burstTime, int arrivalTime, int priority)
     {
         this->id = id;
         this->burstTime = burstTime;
         this->arrivalTime = arrivalTime;
+        this->priority = priority;
     }
 };
 
@@ -26,9 +29,9 @@ bool cmp(process &a, process &b)
 class cmp2
 {
 public:
-    bool operator()(process *a, process *b)
+    bool operator()(process *below, process *above)
     {
-        return b->burstTime < a->burstTime;
+        return above->priority > below->priority;
     }
 };
 
@@ -41,33 +44,33 @@ void input()
 
     jobs = new process[n];
 
-    int id, burstTime, arrivalTime;
+    int id, burstTime, arrivalTime, priority;
     for (int i = 0; i < n; ++i)
     {
-        cin >> id >> arrivalTime >> burstTime;
-        jobs[i] = process(id, burstTime, arrivalTime);
+        cin >> id >> priority >> arrivalTime >> burstTime;
+        jobs[i] = process(id, burstTime, arrivalTime, priority);
     }
 }
 
 void schedule()
 {
-    // SHORTEST JOB FIRST [NON-PREEMPTIVE]
+    // PRIORITY SCHEDULING [NON-PREEMPTIVE]
 
     // sort the processes on the basis of arrival time
     sort(jobs, jobs + n, cmp);
 
-    // take the job with minimum burst time
-    priority_queue<process *, vector<process *>, cmp2> minHeap;
-    minHeap.push(&jobs[0]);
+    // take the job with highest priority
+    priority_queue<process *, vector<process *>, cmp2> maxHeap;
+    maxHeap.push(&jobs[0]);
 
     int time = 0;
 
     int lastAddedProcess = 0;
 
-    while (!minHeap.empty())
+    while (!maxHeap.empty())
     {
-        process* scheduledProcess = minHeap.top();
-        minHeap.pop();
+        process* scheduledProcess = maxHeap.top();
+        maxHeap.pop();
 
         time += scheduledProcess->burstTime;
         scheduledProcess->completionTime = time;
@@ -78,7 +81,7 @@ void schedule()
         {
             if (jobs[i].arrivalTime <= time)
             {
-                minHeap.push(&jobs[i]);
+                maxHeap.push(&jobs[i]);
                 lastAddedProcess = i;
             }
             else
@@ -91,11 +94,11 @@ void schedule()
 
 void displayResult()
 {
-    cout << "ID\tA.T.\tB.T.\tC.T.\tT.A.T.\tW.T.\n";
+    cout << "ID   Priority  A.T.\tB.T.\tC.T.\tT.A.T.\tW.T.\n";
     int totalWaitingTime = 0;
     for (int i = 0; i < n; ++i)
     {
-        cout << jobs[i].id << "\t" << jobs[i].arrivalTime << "\t" << jobs[i].burstTime << "\t" << jobs[i].completionTime << "\t" << jobs[i].turnAroundTime << "\t" << jobs[i].waitingTime << "\n";
+        cout << jobs[i].id << "\t" << jobs[i].priority << "\t" << jobs[i].arrivalTime << "\t" << jobs[i].burstTime << "\t" << jobs[i].completionTime << "\t" << jobs[i].turnAroundTime << "\t" << jobs[i].waitingTime << "\n";
         totalWaitingTime += jobs[i].waitingTime;
     }
     double averageWaitingTime = totalWaitingTime / (n * 1.0);
@@ -114,9 +117,9 @@ int main()
 /*
 example :
     5
-    1 0 4
-    2 2 10
-    3 1 12
-    4 2 1
-    5 3 1
+    1 3 0 4
+    2 10 2 10
+    3 2 1 12
+    4 8 2 1
+    5 9 15 1
 */
