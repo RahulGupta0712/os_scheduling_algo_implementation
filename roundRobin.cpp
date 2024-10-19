@@ -23,15 +23,6 @@ bool cmp(process &a, process &b)
     return a.arrivalTime < b.arrivalTime;
 }
 
-class cmp2
-{
-public:
-    bool operator()(process *a, process *b)
-    {
-        return b->burstTime < a->burstTime;
-    }
-};
-
 int n;
 process *jobs;
 
