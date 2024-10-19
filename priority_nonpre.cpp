@@ -61,15 +61,26 @@ void schedule()
 
     // take the job with highest priority
     priority_queue<process *, vector<process *>, cmp2> maxHeap;
-    maxHeap.push(&jobs[0]);
 
-    int time = 0;
+    int lastAddedProcess = -1;
+    int time = jobs[0].arrivalTime;
 
-    int lastAddedProcess = 0;
+    for (int i = 0; i < n; ++i)
+    {
+        if (jobs[i].arrivalTime <= time)
+        {
+            maxHeap.push(&jobs[i]);
+            lastAddedProcess = i;
+        }
+        else
+        {
+            break;
+        }
+    }
 
     while (!maxHeap.empty())
     {
-        process* scheduledProcess = maxHeap.top();
+        process *scheduledProcess = maxHeap.top();
         maxHeap.pop();
 
         time += scheduledProcess->burstTime;

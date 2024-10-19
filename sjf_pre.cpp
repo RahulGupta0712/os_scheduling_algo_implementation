@@ -59,15 +59,26 @@ void schedule()
 
     // take the job with minimum burst time at every second
     priority_queue<process *, vector<process *>, cmp2> minHeap;
-    minHeap.push(&jobs[0]);
 
-    int time = 0;
-
-    int lastAddedProcess = 0;
+    int time = jobs[0].arrivalTime;
+    
+    int lastAddedProcess = -1;
+    for (int i = 0; i < n; ++i)
+    {
+        if (jobs[i].arrivalTime <= time)
+        {
+            minHeap.push(&jobs[i]);
+            lastAddedProcess = i;
+        }
+        else
+        {
+            break;
+        }
+    }
 
     while (!minHeap.empty())
     {
-        process* scheduledProcess = minHeap.top();
+        process *scheduledProcess = minHeap.top();
         minHeap.pop();
 
         time += 1;
@@ -131,4 +142,12 @@ example :
     3 1 12
     4 2 1
     5 3 1
+
+
+5
+1 0 4
+2 0 2
+3 1 12
+4 2 1
+5 3 1
 */
